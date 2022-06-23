@@ -1,6 +1,5 @@
 public class Tile {
     private final short val;
-
     private final short col;
     private final short row;
     private boolean clicked;
@@ -17,7 +16,7 @@ public class Tile {
 
     public short getRow() { return row; }
 
-    public int getVal() {
+    public short getVal() {
         return val;
     }
 

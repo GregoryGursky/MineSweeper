@@ -1,1 +1,2 @@
-public record TileLoc(short col, short row) {}
+public record TileLoc(short col,
+                      short row) {}
