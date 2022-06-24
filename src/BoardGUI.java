@@ -4,23 +4,26 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class BoardGUI {
+    private boolean createBoard;
+    private boolean contGame;
     private JFrame boardGUI;
     private JButton[][] allTiles;
     private Board board;
+    private Font font;
 
     public BoardGUI(){
         short[] level = askLevel();
         short col = level[0];
         short row = level[1];
         short mines = level[2];
-        board = new Board(col,row,mines); // TODO change so that the first click constructs the board with 0 on first clicked tile
-        board.printBoard();
+        createBoard = true;
         boardGUI = new JFrame();
         boardGUI.setTitle("Minesweeper");
-        boardGUI.setSize(950,540);
+        boardGUI.setSize(col * 40,row * 40 + 50);
         boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         boardGUI.setLayout(new GridLayout(row,col));
         allTiles = new JButton[row][col];
+        font = new Font("Arial", Font.PLAIN, 20);
 
         for (short height = 0; height < row; height++) {
             for (short width = 0; width < col; width++) {
@@ -33,14 +36,24 @@ public class BoardGUI {
                     public void mouseClicked(MouseEvent e){ // 1 is left click, 3 is right click
                         switch (e.getButton()){
                             case 1:
+                                if (createBoard){
+                                    board = new Board(col,row,mines,tileLoc);
+                                    board.printBoard();
+                                    createBoard = false;
+                                }
+
                                 response = board.leftClickTile(tileLoc); // returns null if tile is flagged
                                 if (response != null){
+                                    contGame = response.continueGame();
                                     TileGUI tGUI = response.tileGUI();
                                     for (TileLoc tLoc: response.tileLocs()){
                                         switch (tGUI){
                                             case NUMBER:
-                                                allTiles[tLoc.row()][tLoc.col()].setBackground(Color.WHITE);
-                                                allTiles[tLoc.row()][tLoc.col()].setText(String.valueOf(board.getTileVal(tLoc.row(),tLoc.col()))); // quick fix, I forgot to make the GUI_Response return the tile val
+                                                JButton changeGUI = allTiles[tLoc.row()][tLoc.col()];
+                                                changeGUI.setBackground(Color.WHITE);
+                                                changeGUI.setFont(font);
+                                                changeGUI.setMargin(new Insets(0,0,0,0));
+                                                changeGUI.setText(String.valueOf(board.getTileVal(tLoc.row(),tLoc.col()))); // quick fix, I forgot to make the GUI_Response return the tile val
                                                 break;
                                             case BOMB:
                                                 if (allTiles[tLoc.row()][tLoc.col()].getBackground() != Color.ORANGE)
@@ -73,16 +86,20 @@ public class BoardGUI {
 
                     @Override
                     public void mousePressed(MouseEvent e){ // shades surrounding tiles
-                        if (e.getButton() == 1){
-                            long stopWatch = e.getWhen() + 50;
-                            while (System.currentTimeMillis() < stopWatch){
-                                // wait to see if not released
-                            }
+                        if (e.getButton() == 1 && !createBoard){
+                            if (!contGame) {
+                                dispEnd();
+                            } else {
+                                long stopWatch = e.getWhen() + 35;
+                                while (System.currentTimeMillis() < stopWatch){
+                                    // wait to see if not released
+                                }
 
-                            for (short rowOff = (short) (tileLoc.row() - 1); rowOff < tileLoc.row() + 2; rowOff++) {
-                                for (short colOff = (short) (tileLoc.col() - 1); colOff < tileLoc.col() + 2; colOff++) {
-                                    if (validTile(rowOff, colOff)){
-                                        allTiles[rowOff][colOff].setBackground(Color.GRAY);
+                                for (short rowOff = (short) (tileLoc.row() - 1); rowOff < tileLoc.row() + 2; rowOff++) {
+                                    for (short colOff = (short) (tileLoc.col() - 1); colOff < tileLoc.col() + 2; colOff++) {
+                                        if (validTile(rowOff, colOff)){
+                                            allTiles[rowOff][colOff].setBackground(Color.GRAY);
+                                        }
                                     }
                                 }
                             }
@@ -91,7 +108,7 @@ public class BoardGUI {
 
                     @Override
                     public void mouseReleased(MouseEvent e){ // undoes shading & clicks tile
-                        if (e.getButton() == 1){
+                        if (e.getButton() == 1 && !createBoard){
                             for (short rowOff = (short) (tileLoc.row() - 1); rowOff < tileLoc.row() + 2; rowOff++) {
                                 for (short colOff = (short) (tileLoc.col() - 1); colOff < tileLoc.col() + 2; colOff++) {
                                     if (validTile(rowOff,colOff))
@@ -118,6 +135,10 @@ public class BoardGUI {
 
         boardGUI.setVisible(true);
 
+    }
+
+    private void dispEnd() {
+        JOptionPane.showMessageDialog(null,"Invalid, Try Again","Invalid Guesser's Circle",JOptionPane.PLAIN_MESSAGE);
     }
 
     private short[] askLevel() {
