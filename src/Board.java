@@ -102,30 +102,37 @@ public class Board {
                     case 0 -> clickSurrounding(clicked);
                     default -> clickSelf(clicked);
                 };
-            } else { // clicked a revealed tile TODO
-                boolean findZero = false;
-                LinkedList<Tile> adfTiles = adjFlagCheck(clickedTile);
-                if (adfTiles != null){
-                    for (Tile tile: adfTiles){
-                        if (tile.getVal() == 9){
-                            return endGame();
-                        } else if (tile.getVal() == 0 && !tile.isClicked()){
-                            findZero = true;
-                        }
-                    }
-                    if (findZero){
-                        return clickSurrounding(clicked);
-                    }
-                    TileLoc[] reveal = tileLocConverter(adfTiles);
-                    tilesClicked += reveal.length;
-                    return new GUI_Response(reveal, TileGUI.NUMBER, tilesClicked != tilesNeeded);
-                } else {
-                    return null;
-                }
+            } else { // clicked a revealed tile
+                return secondClick(clicked);
+
             }
-//                return clickSurrounding(clicked);
         }
         return null;
+    }
+
+    private GUI_Response secondClick(TileLoc clicked) {
+        boolean findZero = false;
+        LinkedList<Tile> adjTiles = adjFlagCheck(board[clicked.row()][clicked.col()]);
+        if (adjTiles != null){
+            for (Tile tile: adjTiles){
+                if (tile.getVal() == 9){
+                    return endGame();
+                } else{
+                    tile.setClicked();
+                    if (tile.getVal() == 0 && !tile.isClicked()){
+                        findZero = true;
+                    }
+                }
+            }
+            if (findZero){
+                return clickSurrounding(clicked);
+            }
+            TileLoc[] reveal = tileLocConverter(adjTiles);
+            tilesClicked += reveal.length;
+            return new GUI_Response(reveal, TileGUI.NUMBER, tilesClicked != tilesNeeded);
+        } else {
+            return null;
+        }
     }
 
     private GUI_Response endGame(){
@@ -166,8 +173,8 @@ public class Board {
         firstClick.setClicked();
         LinkedList<Tile> adjTiles = getAdjZeros(firstClick);
         HashSet<Tile> allAdj = getAllZeroes(adjTiles);
+        allAdj.add(board[clicked.row()][clicked.col()]);
         TileLoc[] reveal = tileLocConverter(allAdj);
-        reveal[reveal.length - 1] = clicked; // getAdjZeros() has a check on tile.isClicked
         return new GUI_Response(reveal, TileGUI.NUMBER, !(++tilesClicked == tilesNeeded));
     }
 
@@ -226,7 +233,7 @@ public class Board {
     }
 
     private TileLoc[] tileLocConverter(Collection<Tile> allAdjTiles) {
-        short maxIndex = (short) ((short) allAdjTiles.size() + 1); // see clickSurrounding()
+        short maxIndex = (short) ((short) allAdjTiles.size());
         short index = 0;
         TileLoc[] converted = new TileLoc[maxIndex];
         for (Tile tile: allAdjTiles) {

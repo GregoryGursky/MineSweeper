@@ -90,7 +90,7 @@ public class BoardGUI {
                             if (!contGame) {
                                 dispEnd();
                             } else {
-                                long stopWatch = e.getWhen() + 35;
+                                long stopWatch = e.getWhen() + 75;
                                 while (System.currentTimeMillis() < stopWatch){
                                     // wait to see if not released
                                 }
