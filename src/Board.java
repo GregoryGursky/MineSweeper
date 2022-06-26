@@ -4,6 +4,7 @@ public class Board {
     private final short width;
     private final short height;
     private final short mines;
+    private boolean mineClicked;
     private final short tilesNeeded;
     private short tilesClicked;
     private final Tile[][] board;
@@ -16,6 +17,8 @@ public class Board {
         board = new Tile[height][width];
         tilesNeeded = (short) (width*height-mines);
         tilesClicked = 0;
+        mineClicked = false;
+
         HashSet<TileLoc> startingBox = startingLoc(tileLoc);
         createMines(startingBox);
         createNumbers();
@@ -76,9 +79,6 @@ public class Board {
         return minesTouching;
     }
 
-    public short getTileVal(short row, short col){
-        return board[row][col].getVal();
-    }
 
     public TileLoc[] rightClickTile(TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
@@ -95,48 +95,59 @@ public class Board {
     public TileLoc[] leftClickTile(TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isFlagged()){ // can only click non-flagged tiles
+            TileLoc[] locs;
             if (!clickedTile.isClicked()){ // clicked a new tile
                 short tileVal = clickedTile.getVal();
-                return switch (tileVal) {
-                    case 9 -> endGame();
-                    case 0 -> clickSurrounding(clicked);
-                    default -> clickSelf(clicked);
-                };
+                switch (tileVal){
+                    case (9):
+                        return endGame();
+                    case (0):
+                        locs = clickSurrounding(clicked);
+                        tilesClicked += locs.length;
+                        return locs;
+                    default:
+                        locs = clickSelf(clicked);
+                        tilesClicked += locs.length;
+                        return locs;
+                }
             } else { // clicked a revealed tile
-                return secondClick(clicked);
+                locs = secondClick(clicked);
+                tilesClicked += locs.length;
+                return locs;
             }
         }
         return null;
     }
 
     private TileLoc[] secondClick(TileLoc clicked) {
-        boolean findZero = false;
         LinkedList<Tile> adjTiles = adjFlagCheck(board[clicked.row()][clicked.col()]);
-        ArrayList<TileLoc> reveal = new ArrayList<>();
+        HashSet<TileLoc> reveal = new HashSet<>(); // I need a HSet vs ArrList for secondClick touching a zero
         if (adjTiles != null){
             for (Tile tile: adjTiles){
                 if (tile.getVal() == 9){
-                    reveal.addAll(List.of(mineLocations));
+                    reveal.addAll(List.of(endGame()));
                 } else{
-                    reveal.add(new TileLoc(tile.getCol(),tile.getRow()));
-                    if (tile.getVal() == 0 && !tile.isClicked()){
-                        TileLoc[] zeros = clickSurrounding(new TileLoc(tile.getCol(),tile.getRow()));
-                        ArrayList<TileLoc> zerosArr = new ArrayList<>(List.of(zeros));
-                        reveal.addAll(zerosArr);
+                    if (!tile.isClicked()){
+                        reveal.add(new TileLoc(tile.getCol(),tile.getRow()));
+                        if (tile.getVal() == 0){
+                            TileLoc[] zeros = clickSurrounding(new TileLoc(tile.getCol(),tile.getRow()));
+                            ArrayList<TileLoc> zerosArr = new ArrayList<>(List.of(zeros));
+                            reveal.addAll(zerosArr);
+                        }
                     }
                     tile.setClicked();
                 }
             }
-            tilesClicked += reveal.size();
             TileLoc[] revealArr = reveal.toArray(new TileLoc[0]);
             setGuis(revealArr);
             return revealArr;
         } else {
-            return null;
+            return new TileLoc[]{};
         }
     }
 
     private TileLoc[] endGame(){
+        mineClicked = true;
         for (TileLoc tileLoc: mineLocations){
             board[tileLoc.row()][tileLoc.col()].setGui(TileGUI.BOMB);
         }
@@ -163,7 +174,8 @@ public class Board {
                             if (board[rowOff][colOff].isFlagged()){
                                 flagsNeeded--;
                             } else {
-                                adjTiles.add(board[rowOff][colOff]);
+                                if (!board[rowOff][colOff].isClicked())
+                                    adjTiles.add(board[rowOff][colOff]);
                             }
                         }
                     }
@@ -211,7 +223,6 @@ public class Board {
         while (newAdjTiles.size() > 0){
             Tile adjTile = newAdjTiles.pop();
             adjTile.setClicked();
-            tilesClicked++;
             if (adjTile.getVal() == 0){
                 for (short rowOff = (short) (adjTile.getRow() - 1); rowOff < adjTile.getRow() + 2; rowOff++) {
                     if (validRow(rowOff)){
@@ -280,7 +291,23 @@ public class Board {
         return board[rowOff][colOff].isFlagged();
     }
 
+    public int getTilesClicked(){
+        return tilesClicked;
+    }
+
+    public short getTileVal(short row, short col){
+        return board[row][col].getVal();
+    }
+
     public TileGUI getTileGui(TileLoc tl) {
         return board[tl.row()][tl.col()].getGui();
+    }
+
+    public boolean mineCheck(){
+        return mineClicked;
+    }
+
+    public boolean winCheck(){
+        return tilesClicked == tilesNeeded;
     }
 }
