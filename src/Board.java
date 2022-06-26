@@ -80,19 +80,19 @@ public class Board {
         return board[row][col].getVal();
     }
 
-    public GUI_Response rightClickTile(TileLoc clicked){
+    public TileLoc[] rightClickTile(TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isClicked()){ // only able to flag non-clicked tiles
             clickedTile.setFlag(); // change the flag val
-            if (board[clicked.row()][clicked.col()].isFlagged())
-                return new GUI_Response(new TileLoc[]{clicked}, TileGUI.FLAG, true);
-            else
-                return new GUI_Response(new TileLoc[]{clicked}, TileGUI.UNFLAG, true);
+            if (clickedTile.isFlagged())
+                clickedTile.setGui(TileGUI.FLAG);
+            else clickedTile.setGui(TileGUI.UNFLAG);
+            return new TileLoc[]{clicked};
         }
         return null;
     }
 
-    public GUI_Response leftClickTile(TileLoc clicked){
+    public TileLoc[] leftClickTile(TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isFlagged()){ // can only click non-flagged tiles
             if (!clickedTile.isClicked()){ // clicked a new tile
@@ -104,47 +104,52 @@ public class Board {
                 };
             } else { // clicked a revealed tile
                 return secondClick(clicked);
-
             }
         }
         return null;
     }
 
-    private GUI_Response secondClick(TileLoc clicked) {
+    private TileLoc[] secondClick(TileLoc clicked) {
         boolean findZero = false;
         LinkedList<Tile> adjTiles = adjFlagCheck(board[clicked.row()][clicked.col()]);
+        ArrayList<TileLoc> reveal = new ArrayList<>();
         if (adjTiles != null){
             for (Tile tile: adjTiles){
                 if (tile.getVal() == 9){
-                    return endGame();
+                    reveal.addAll(List.of(mineLocations));
                 } else{
-                    tile.setClicked();
+                    reveal.add(new TileLoc(tile.getCol(),tile.getRow()));
                     if (tile.getVal() == 0 && !tile.isClicked()){
-                        findZero = true;
+                        TileLoc[] zeros = clickSurrounding(new TileLoc(tile.getCol(),tile.getRow()));
+                        ArrayList<TileLoc> zerosArr = new ArrayList<>(List.of(zeros));
+                        reveal.addAll(zerosArr);
                     }
+                    tile.setClicked();
                 }
             }
-            if (findZero){
-                return clickSurrounding(clicked);
-            }
-            TileLoc[] reveal = tileLocConverter(adjTiles);
-            tilesClicked += reveal.length;
-            return new GUI_Response(reveal, TileGUI.NUMBER, tilesClicked != tilesNeeded);
+            tilesClicked += reveal.size();
+            TileLoc[] revealArr = reveal.toArray(new TileLoc[0]);
+            setGuis(revealArr);
+            return revealArr;
         } else {
             return null;
         }
     }
 
-    private GUI_Response endGame(){
-        return new GUI_Response(mineLocations,TileGUI.BOMB, false);
+    private TileLoc[] endGame(){
+        for (TileLoc tileLoc: mineLocations){
+            board[tileLoc.row()][tileLoc.col()].setGui(TileGUI.BOMB);
+        }
+        return mineLocations;
     }
 
-    private GUI_Response clickSelf(TileLoc clicked){
+    private TileLoc[] clickSelf(TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isClicked()) { // if not clicked
             clickedTile.setClicked();
+            clickedTile.setGui(TileGUI.NUMBER);
         }
-        return new GUI_Response(new TileLoc[] {clicked},TileGUI.NUMBER , (++tilesClicked != tilesNeeded));
+        return new TileLoc[]{clicked};
     }
 
     private LinkedList<Tile> adjFlagCheck(Tile clickedTile) {
@@ -168,14 +173,15 @@ public class Board {
         return (flagsNeeded == 0)? adjTiles: null;
     }
 
-    private GUI_Response clickSurrounding(TileLoc clicked){
+    private TileLoc[] clickSurrounding(TileLoc clicked){
         Tile firstClick = board[clicked.row()][clicked.col()];
         firstClick.setClicked();
         LinkedList<Tile> adjTiles = getAdjZeros(firstClick);
         HashSet<Tile> allAdj = getAllZeroes(adjTiles);
         allAdj.add(board[clicked.row()][clicked.col()]);
         TileLoc[] reveal = tileLocConverter(allAdj);
-        return new GUI_Response(reveal, TileGUI.NUMBER, !(++tilesClicked == tilesNeeded));
+        setGuis(reveal);
+        return reveal;
     }
 
     private LinkedList<Tile> getAdjZeros(Tile clicked) {
@@ -184,9 +190,11 @@ public class Board {
             if (validRow(rowOff)){
                 for (short colOff = (short) (clicked.getCol() - 1); colOff < clicked.getCol() + 2; colOff++) {
                     if (validCol(colOff)){
-                        if (!board[rowOff][colOff].isClicked()){
-                            board[rowOff][colOff].setClicked();
-                            adjTiles.add(board[rowOff][colOff]);
+                        Tile adjTile = board[rowOff][colOff];
+                        if (!adjTile.isClicked()){
+                            adjTile.setClicked();
+                            adjTile.setGui(TileGUI.NUMBER);
+                            adjTiles.add(adjTile);
                         }
                     }
                 }
@@ -224,6 +232,18 @@ public class Board {
         return allAdjTiles;
     }
 
+    private void setGuis(TileLoc[] tileLocs){
+        for (TileLoc tileLoc: tileLocs){
+            Tile tile = board[tileLoc.row()][tileLoc.col()];
+            short val = tile.getVal();
+            if (val == 9) {
+                tile.setGui(TileGUI.BOMB);
+            } else {
+                tile.setGui(TileGUI.NUMBER);
+            }
+        }
+    }
+
     private boolean validCol(short col) {
         return (col >= 0 && col < width);
     }
@@ -258,5 +278,9 @@ public class Board {
 
     public boolean isFlagged(short rowOff, short colOff) {
         return board[rowOff][colOff].isFlagged();
+    }
+
+    public TileGUI getTileGui(TileLoc tl) {
+        return board[tl.row()][tl.col()].getGui();
     }
 }

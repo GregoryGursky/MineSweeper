@@ -31,12 +31,12 @@ public class BoardGUI {
                 tileToAdd.setSize(30,30);
                 TileLoc tileLoc = new TileLoc(width, height);
                 tileToAdd.addMouseListener(new MouseAdapter() {
-                    GUI_Response response;
+                    TileLoc[] response;
                     @Override
                     public void mouseClicked(MouseEvent e){ // 1 is left click, 3 is right click
                         switch (e.getButton()){
                             case 1:
-                                if (createBoard){
+                                if (board == null){
                                     board = new Board(col,row,mines,tileLoc);
                                     board.printBoard();
                                     createBoard = false;
@@ -44,39 +44,66 @@ public class BoardGUI {
 
                                 response = board.leftClickTile(tileLoc); // returns null if tile is flagged
                                 if (response != null){
-                                    contGame = response.continueGame();
-                                    TileGUI tGUI = response.tileGUI();
-                                    for (TileLoc tLoc: response.tileLocs()){
-                                        switch (tGUI){
+                                    for (TileLoc tl: response){
+                                        TileGUI tileGUI = board.getTileGui(tl);
+                                        JButton changeGUI = allTiles[tl.row()][tl.col()];
+                                        switch (tileGUI){
                                             case NUMBER:
-                                                JButton changeGUI = allTiles[tLoc.row()][tLoc.col()];
                                                 changeGUI.setBackground(Color.WHITE);
                                                 changeGUI.setFont(font);
                                                 changeGUI.setMargin(new Insets(0,0,0,0));
-                                                changeGUI.setText(String.valueOf(board.getTileVal(tLoc.row(),tLoc.col()))); // quick fix, I forgot to make the GUI_Response return the tile val
+                                                changeGUI.setText(String.valueOf(board.getTileVal(tl.row(),tl.col())));
                                                 break;
                                             case BOMB:
-                                                if (allTiles[tLoc.row()][tLoc.col()].getBackground() != Color.ORANGE)
-                                                    allTiles[tLoc.row()][tLoc.col()].setBackground(Color.RED);
+                                                if (allTiles[tl.row()][tl.col()].getBackground() != Color.ORANGE)
+                                                    allTiles[tl.row()][tl.col()].setBackground(Color.RED);
                                                 break;
                                             default:
                                                 break;
                                         }
                                     }
+//                                    contGame = response.continueGame();
+//                                    TileGUI tGUI = response.tileGUI();
+//                                    for (TileLoc tLoc: response.tileLocs()){
+//                                        switch (tGUI){
+//                                            case NUMBER:
+//                                                JButton changeGUI = allTiles[tLoc.row()][tLoc.col()];
+//                                                changeGUI.setBackground(Color.WHITE);
+//                                                changeGUI.setFont(font);
+//                                                changeGUI.setMargin(new Insets(0,0,0,0));
+//                                                changeGUI.setText(String.valueOf(board.getTileVal(tLoc.row(),tLoc.col()))); // quick fix, I forgot to make the GUI_Response return the tile val
+//                                                break;
+//                                            case BOMB:
+//                                                if (allTiles[tLoc.row()][tLoc.col()].getBackground() != Color.ORANGE)
+//                                                    allTiles[tLoc.row()][tLoc.col()].setBackground(Color.RED);
+//                                                break;
+//                                            default:
+//                                                break;
+//                                        }
+//                                    }
                                 }
                                 break;
                             case 3:
                                 response = board.rightClickTile(tileLoc);
-                                if ( response != null) { // returns null if tile is clicked
-                                    TileGUI tGUI = response.tileGUI();
-                                    for (TileLoc tLoc: response.tileLocs()){
-                                        switch (tGUI) {
-                                            case FLAG -> allTiles[tLoc.row()][tLoc.col()].setBackground(Color.ORANGE);
-                                            case UNFLAG -> allTiles[tLoc.row()][tLoc.col()].setBackground(null);
+                                if (response != null) { // returns null if tile is clicked
+                                    for (TileLoc tl: response){
+                                        TileGUI tileGUI = board.getTileGui(tl);
+                                        switch (tileGUI){
+                                            case FLAG -> allTiles[tl.row()][tl.col()].setBackground(Color.ORANGE);
+                                            case UNFLAG -> allTiles[tl.row()][tl.col()].setBackground(null);
                                             default -> {
                                             }
                                         }
                                     }
+//                                    TileGUI tGUI = response.tileGUI();
+//                                    for (TileLoc tLoc: response.tileLocs()){
+//                                        switch (tGUI) {
+//                                            case FLAG -> allTiles[tLoc.row()][tLoc.col()].setBackground(Color.ORANGE);
+//                                            case UNFLAG -> allTiles[tLoc.row()][tLoc.col()].setBackground(null);
+//                                            default -> {
+//                                            }
+//                                        }
+//                                    }
                                 }
                                 break;
                             default:
@@ -86,25 +113,22 @@ public class BoardGUI {
 
                     @Override
                     public void mousePressed(MouseEvent e){ // shades surrounding tiles
-                        if (e.getButton() == 1 && !createBoard){
-                            if (!contGame) {
-                                dispEnd();
-                            } else {
-                                long stopWatch = e.getWhen() + 75;
-                                while (System.currentTimeMillis() < stopWatch){
-                                    // wait to see if not released
-                                }
-
-                                for (short rowOff = (short) (tileLoc.row() - 1); rowOff < tileLoc.row() + 2; rowOff++) {
-                                    for (short colOff = (short) (tileLoc.col() - 1); colOff < tileLoc.col() + 2; colOff++) {
-                                        if (validTile(rowOff, colOff)){
-                                            allTiles[rowOff][colOff].setBackground(Color.GRAY);
-                                        }
+                        if (e.getButton() == 1){
+                            long stopWatch = e.getWhen() + 75;
+                            while (System.currentTimeMillis() < stopWatch){
+                                // wait to see if not released
+                            }
+                            for (short rowOff = (short) (tileLoc.row() - 1); rowOff < tileLoc.row() + 2; rowOff++) {
+                                for (short colOff = (short) (tileLoc.col() - 1); colOff < tileLoc.col() + 2; colOff++) {
+                                    if (validTile(rowOff, colOff)){
+                                        allTiles[rowOff][colOff].setBackground(Color.GRAY);
                                     }
                                 }
                             }
                         }
                     }
+
+
 
                     @Override
                     public void mouseReleased(MouseEvent e){ // undoes shading & clicks tile

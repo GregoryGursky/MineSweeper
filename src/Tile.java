@@ -4,6 +4,7 @@ public class Tile {
     private final short row;
     private boolean clicked;
     private boolean flagged;
+    private TileGUI gui;
 
     protected Tile (short val,short col, short row){
             this.val = val;
@@ -20,6 +21,13 @@ public class Tile {
         return val;
     }
 
+    public TileGUI getGui() {
+        return gui;
+    }
+
+    public void setGui(TileGUI gui) {
+        this.gui = gui;
+    }
     public void setClicked() {
         this.clicked = true;
     }
