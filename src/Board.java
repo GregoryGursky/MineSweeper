@@ -26,9 +26,9 @@ public class Board {
     private HashSet<TileLoc> startingLoc(TileLoc clicked){
         HashSet<TileLoc> startingBox = new HashSet<>();
         for (short rowOff = (short) (clicked.row() - 1); rowOff < clicked.row() + 2; rowOff++) {
-            if (validRow( rowOff)){
+            if (validRow(rowOff)){
                 for (short colOff = (short) (clicked.col() - 1); colOff < clicked.col() + 2; colOff++) {
-                    if (validCol( colOff)){
+                    if (validCol(colOff)){
                         startingBox.add(new TileLoc(colOff,rowOff));
                     }
                 }

@@ -4,101 +4,139 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class BoardGUI {
-    private JFrame boardGUI;
+    private final JFrame boardGUI;
+    private final JPanel minePanel;
+    private final JPanel infoPanel;
     private Board board;
     private final JButton[][] allTiles;
     private final Font font;
     private boolean gameInProgress;
-    private short row;
-    private short col;
-    private short mines;
+    private final short row;
+    private final short col;
+    private final short mines;
+    private short flags;
 
     public BoardGUI(){
         short[] level = askLevel();
         col = level[0];
         row = level[1];
         mines = level[2];
+        flags = 0;
         boardGUI = new JFrame();
         boardGUI.setTitle("Minesweeper");
-        boardGUI.setSize(col * 32,row * 32 + 50);
         boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        boardGUI.setLayout(new GridLayout(row,col));
+        minePanel = new JPanel();
+        minePanel.setSize(new Dimension(col * 40,row * 40));
+        minePanel.setLayout(new GridLayout(row,col));
         allTiles = new JButton[row][col];
         font = new Font("Arial", Font.BOLD, 20);
         gameInProgress = true;
+        infoPanel = new InfoPanel();
+        infoPanel.setPreferredSize(new Dimension(200, minePanel.getHeight()));
+        infoPanel.setBackground(Color.GRAY);
+        infoPanel.setVisible(true);
+        boardGUI.setLayout(new BorderLayout());
+        boardGUI.setSize(new Dimension(infoPanel.getWidth() + minePanel.getWidth(), minePanel.getHeight()));
 
-        for (short height = 0; height < row; height++) {
-            for (short width = 0; width < col; width++) {
-                JButton tileToAdd = new JButton();
-                tileToAdd.setSize(30,30);
-                TileLoc tileLoc = new TileLoc(width, height);
-                tileToAdd.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mousePressed(MouseEvent e){
-                        if (board != null && gameInProgress){
-                            if (e.getButton() == 1){
-                                shadeAdj(tileLoc);
-                            }
-                        }
-                    }
+        createMinePanel();
 
-                    @Override
-                    public void mouseReleased(MouseEvent e){
-                        TileLoc[] response;
-                        switch (e.getButton()) {
-                            case 1 -> {
-                                if (gameInProgress){
-                                    if (board != null) {
-                                        unshadeAdj(tileLoc);
-                                    } else {
-                                        board = new Board(col, row, mines, tileLoc);
-                                        board.printBoard();
-                                    }
+        boardGUI.add(infoPanel, BorderLayout.WEST);
+        boardGUI.add(minePanel, BorderLayout.CENTER);
+        boardGUI.setVisible(true);
+    }
 
-                                    response = board.leftClickTile(tileLoc); // clicks tile
-                                    if (response != null) { // returns null if tile is flagged
-                                        setGUI(response);
-                                    }
-                                }
 
-                                if (board.mineCheck()) {
-                                    dispLose();
-                                    gameInProgress = false;
-                                    e.consume();
-                                }
-                                if (board.winCheck()) {
-                                    dispWin();
-                                    gameInProgress = false;
-                                    e.consume();
-                                }
-                            }
 
-                            case 3 -> {
-                                if (gameInProgress){
-                                    response = board.rightClickTile(tileLoc);
-                                    if (response != null) { // returns null if tile is clicked
-                                        setFlag(response);
-                                    }
-                                }
-
-                            }
-                            default -> e.consume();
-                        }
-                    }
-                });
-                allTiles[height][width] = tileToAdd;
-                boardGUI.add(tileToAdd);
+    private void createMinePanel() {
+        for (short newRow = 0; newRow < row; newRow++) {
+            for (short newCol = 0; newCol < col; newCol++) {
+                createJButton(newRow,newCol);
             }
         }
-        boardGUI.setVisible(true);
+    }
+
+    private void createJButton(short newRow,short newCol) {
+        JButton tileToAdd = new JButton();
+        tileToAdd.setMinimumSize(new Dimension(32,32));
+        tileToAdd.setMaximumSize(new Dimension(40,40));
+        TileLoc tileLoc = new TileLoc(newCol, newRow);
+        tileToAdd.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e){
+                if (board != null && gameInProgress){
+                    if (e.getButton() == 1){
+                        shadeAdj(tileLoc);
+                    }
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e){
+                TileLoc[] response;
+                switch (e.getButton()) {
+                    case 1 -> {
+                        if (gameInProgress){
+                            if (board == null) {
+                                board = new Board(col, row, mines, tileLoc);
+                                board.printBoard();
+                            } else {
+                                unshadeAdj(tileLoc);
+                            }
+
+                            response = board.leftClickTile(tileLoc); // clicks tile
+                            if (response != null) { // returns null if tile is flagged
+                                setGUI(response);
+                            }
+                        }
+                        gameInProgressCheck();
+                    }
+                    case 3 -> {
+                        if (gameInProgress){
+                            response = board.rightClickTile(tileLoc);
+                            if (response != null) { // returns null if tile is clicked
+                                setFlag(response);
+                            }
+                        }
+                    }
+                    default -> e.consume();
+                }
+            }
+        });
+        allTiles[newRow][newCol] = tileToAdd;
+        minePanel.add(tileToAdd);
+    }
+
+    private void gameInProgressCheck() {
+        mineCheck();
+        winCheck();
+    }
+
+    private void mineCheck(){
+        if (board.mineCheck()) {
+            gameInProgress = false;
+            dispLose();
+        }
+    }
+
+    private void winCheck(){
+        if (board.winCheck()) {
+            gameInProgress = false;
+            dispWin();
+        }
     }
 
     private void setFlag(TileLoc[] response) {
         for (TileLoc tl : response) {
             TileGUI tileGUI = board.getTileGui(tl);
             switch (tileGUI) {
-                case FLAG -> allTiles[tl.row()][tl.col()].setBackground(Color.ORANGE);
-                case UNFLAG -> allTiles[tl.row()][tl.col()].setBackground(null);
+                case FLAG -> {
+                    allTiles[tl.row()][tl.col()].setBackground(Color.ORANGE);
+                    flags++;
+                }
+                case UNFLAG -> {
+                    allTiles[tl.row()][tl.col()].setBackground(null);
+                    flags--;
+                }
                 default -> {
                 }
             }
@@ -183,6 +221,43 @@ public class BoardGUI {
     }
 
     private short[] askLevel() {
+        //new Level();
         return new short[]{30, 16, 99};
+    }
+
+    class InfoPanel extends JPanel{
+        short timerX = 90;
+        short timerY = 100;
+        short mineCountX = 90;
+        short mineCountY = 350;
+        long elapsed = 0;
+        Timer timer;
+        boolean timerStarted;
+
+        InfoPanel(){
+            timerStarted = false;
+            timer  = new Timer(1000,
+                    e -> {repaint();}
+            );
+            timer.start();
+        }
+
+        @Override
+        public void paint(Graphics g){
+            super.paint(g);
+
+            g.setColor(Color.DARK_GRAY);
+            g.fillRect(timerX - 70 ,timerY - 40,150,60);
+            g.fillRect(mineCountX  - 70, mineCountY - 40, 150,60);
+
+            g.setFont(new Font("Ariel", Font.BOLD, 30));
+            g.setColor(Color.WHITE);
+            g.drawString("TIME",timerX - 35,timerY - 50);
+            g.drawString(String.valueOf(elapsed),timerX,timerY);
+            if (board != null && gameInProgress)
+                elapsed++;
+            g.drawString("MINES LEFT", mineCountX - 85, mineCountY - 50);
+            g.drawString(String.valueOf(mines - flags),mineCountX,mineCountY);
+        }
     }
 }
