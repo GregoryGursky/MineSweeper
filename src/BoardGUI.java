@@ -250,10 +250,9 @@ public class BoardGUI {
             g.setFont(new Font("Ariel", Font.BOLD, 30));
             g.setColor(Color.WHITE);
             g.drawString("TIME",timerX - 35,timerY - 50);
-            if (board != null && gameInProgress){
+            if (board != null && gameInProgress)
                 elapsed = (System.currentTimeMillis() - startTime) / 1000;
-                g.drawString(String.valueOf(elapsed),timerX,timerY);
-            }
+            g.drawString(String.valueOf(elapsed),timerX,timerY);
             g.drawString("MINES LEFT", mineCountX - 85, mineCountY - 50);
             g.drawString(String.valueOf(mines - flags),mineCountX,mineCountY);
         }
