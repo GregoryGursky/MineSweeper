@@ -18,7 +18,6 @@ public class Board {
         tilesNeeded = (short) (width*height-mines);
         tilesClicked = 0;
         mineClicked = false;
-
         HashSet<TileLoc> startingBox = startingLoc(tileLoc);
         createMines(startingBox);
         createNumbers();
@@ -79,7 +78,6 @@ public class Board {
         return minesTouching;
     }
 
-
     public TileLoc[] rightClickTile(TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isClicked()){ // only able to flag non-clicked tiles
@@ -103,20 +101,25 @@ public class Board {
                         return endGame();
                     case (0):
                         locs = clickSurrounding(clicked);
-                        tilesClicked += locs.length;
+                        finalPrep(locs);
                         return locs;
                     default:
                         locs = clickSelf(clicked);
-                        tilesClicked += locs.length;
+                        finalPrep(locs);
                         return locs;
                 }
             } else { // clicked a revealed tile
                 locs = secondClick(clicked);
-                tilesClicked += locs.length;
+                finalPrep(locs);
                 return locs;
             }
         }
         return null;
+    }
+
+    private void finalPrep(TileLoc[] finalPrep){
+        tilesClicked += finalPrep.length;
+        setGuis(finalPrep);
     }
 
     private TileLoc[] secondClick(TileLoc clicked) {
@@ -138,9 +141,7 @@ public class Board {
                     tile.setClicked();
                 }
             }
-            TileLoc[] revealArr = reveal.toArray(new TileLoc[0]);
-            setGuis(revealArr);
-            return revealArr;
+            return reveal.toArray(new TileLoc[0]);
         } else {
             return new TileLoc[]{};
         }
@@ -191,9 +192,7 @@ public class Board {
         LinkedList<Tile> adjTiles = getAdjZeros(firstClick);
         HashSet<Tile> allAdj = getAllZeroes(adjTiles);
         allAdj.add(board[clicked.row()][clicked.col()]);
-        TileLoc[] reveal = tileLocConverter(allAdj);
-        setGuis(reveal);
-        return reveal;
+        return tileLocConverter(allAdj);
     }
 
     private LinkedList<Tile> getAdjZeros(Tile clicked) {
@@ -263,7 +262,7 @@ public class Board {
         return (row >= 0 && row < height);
     }
 
-    private TileLoc[] tileLocConverter(Collection<Tile> allAdjTiles) {
+    private TileLoc[] tileLocConverter(HashSet<Tile> allAdjTiles) {
         short maxIndex = (short) ((short) allAdjTiles.size());
         short index = 0;
         TileLoc[] converted = new TileLoc[maxIndex];
@@ -291,10 +290,6 @@ public class Board {
         return board[rowOff][colOff].isFlagged();
     }
 
-    public int getTilesClicked(){
-        return tilesClicked;
-    }
-
     public short getTileVal(short row, short col){
         return board[row][col].getVal();
     }
@@ -303,9 +298,7 @@ public class Board {
         return board[tl.row()][tl.col()].getGui();
     }
 
-    public boolean mineCheck(){
-        return mineClicked;
-    }
+    public boolean mineCheck(){ return mineClicked; }
 
     public boolean winCheck(){
         return tilesClicked == tilesNeeded;
