@@ -11,6 +11,7 @@ public class BoardGUI {
     private final JButton[][] allTiles;
     private final Font font;
     private boolean gameInProgress;
+    private Long startTime;
     private final short row;
     private final short col;
     private final short mines;
@@ -37,9 +38,7 @@ public class BoardGUI {
         infoPanel.setVisible(true);
         boardGUI.setLayout(new BorderLayout());
         boardGUI.setSize(new Dimension(infoPanel.getWidth() + minePanel.getWidth(), minePanel.getHeight()));
-
         createMinePanel();
-
         boardGUI.add(infoPanel, BorderLayout.WEST);
         boardGUI.add(minePanel, BorderLayout.CENTER);
         boardGUI.setVisible(true);
@@ -78,6 +77,7 @@ public class BoardGUI {
                         if (gameInProgress){
                             if (board == null) {
                                 board = new Board(col, row, mines, tileLoc);
+                                startTime = System.currentTimeMillis();
                                 board.printBoard();
                             } else {
                                 unshadeAdj(tileLoc);
@@ -213,11 +213,11 @@ public class BoardGUI {
     }
 
     private void dispWin() {
-        JOptionPane.showMessageDialog(null,"You Win","Minesweeper",JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(null,"You Win \nPlay Again?" ,"GAME OVER",JOptionPane.PLAIN_MESSAGE);
     }
 
     private void dispLose() {
-        JOptionPane.showMessageDialog(null,"You Lose, Try Again","Minesweeper",JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(null,"You Lose \nPlay Again?","GAME OVER",JOptionPane.PLAIN_MESSAGE);
     }
 
     private short[] askLevel() {
@@ -232,11 +232,9 @@ public class BoardGUI {
         short mineCountY = 350;
         long elapsed = 0;
         Timer timer;
-        boolean timerStarted;
 
         InfoPanel(){
-            timerStarted = false;
-            timer  = new Timer(1000,
+            timer  = new Timer(10,
                     e -> {repaint();}
             );
             timer.start();
@@ -245,7 +243,6 @@ public class BoardGUI {
         @Override
         public void paint(Graphics g){
             super.paint(g);
-
             g.setColor(Color.DARK_GRAY);
             g.fillRect(timerX - 70 ,timerY - 40,150,60);
             g.fillRect(mineCountX  - 70, mineCountY - 40, 150,60);
@@ -253,9 +250,10 @@ public class BoardGUI {
             g.setFont(new Font("Ariel", Font.BOLD, 30));
             g.setColor(Color.WHITE);
             g.drawString("TIME",timerX - 35,timerY - 50);
-            g.drawString(String.valueOf(elapsed),timerX,timerY);
-            if (board != null && gameInProgress)
-                elapsed++;
+            if (board != null && gameInProgress){
+                elapsed = (System.currentTimeMillis() - startTime) / 1000;
+                g.drawString(String.valueOf(elapsed),timerX,timerY);
+            }
             g.drawString("MINES LEFT", mineCountX - 85, mineCountY - 50);
             g.drawString(String.valueOf(mines - flags),mineCountX,mineCountY);
         }
