@@ -78,6 +78,7 @@ public class BoardGUI {
                             if (board == null) {
                                 board = new Board(col, row, mines, tileLoc);
                                 startTime = System.currentTimeMillis();
+                                flags = 0;
                             } else {
                                 unshadeAdj(tileLoc);
                             }
@@ -255,6 +256,10 @@ public class BoardGUI {
                     e -> {repaint();}
             );
             timer.start();
+        }
+
+        public long getTime(){
+            return elapsed;
         }
 
         @Override
