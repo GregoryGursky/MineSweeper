@@ -254,14 +254,6 @@ public class Board {
         }
     }
 
-    private boolean validCol(short col) {
-        return (col >= 0 && col < width);
-    }
-
-    private boolean validRow(short row) {
-        return (row >= 0 && row < height);
-    }
-
     private TileLoc[] tileLocConverter(HashSet<Tile> allAdjTiles) {
         short maxIndex = (short) ((short) allAdjTiles.size());
         short index = 0;
@@ -273,13 +265,12 @@ public class Board {
         return converted;
     }
 
-    public void printBoard(){
-        for (short i = 0; i < height; i++) {
-            for (short j = 0; j < width; j++) {
-                System.out.print(board[i][j].getVal() + " ");
-            }
-            System.out.println("");
-        }
+    private boolean validCol(short col) {
+        return (col >= 0 && col < width);
+    }
+
+    private boolean validRow(short row) {
+        return (row >= 0 && row < height);
     }
 
     public boolean isClicked(short rowOff, short colOff) {

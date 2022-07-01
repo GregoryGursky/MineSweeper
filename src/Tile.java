@@ -13,17 +13,6 @@ public class Tile {
             this.clicked = false;
             this.flagged = false;
     }
-    public short getCol() { return col; }
-
-    public short getRow() { return row; }
-
-    public short getVal() {
-        return val;
-    }
-
-    public TileGUI getGui() {
-        return gui;
-    }
 
     public void setGui(TileGUI gui) {
         this.gui = gui;
@@ -36,11 +25,21 @@ public class Tile {
         flagged = !flagged;
     }
 
-    public boolean isClicked() {
-        return clicked;
+    public short getCol() { return col; }
+
+    public short getRow() { return row; }
+
+    public short getVal() { return val; }
+
+    public TileGUI getGui() {
+        return gui;
     }
+
+    public boolean isClicked() { return clicked;}
 
     public boolean isFlagged() {
         return flagged;
     }
+
+
 }

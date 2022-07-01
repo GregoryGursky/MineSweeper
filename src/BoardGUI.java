@@ -78,7 +78,6 @@ public class BoardGUI {
                             if (board == null) {
                                 board = new Board(col, row, mines, tileLoc);
                                 startTime = System.currentTimeMillis();
-                                board.printBoard();
                             } else {
                                 unshadeAdj(tileLoc);
                             }
@@ -119,7 +118,7 @@ public class BoardGUI {
     }
 
     private void winCheck(){
-        if (board.winCheck()) {
+        if (board != null && board.winCheck()) {
             gameInProgress = false;
             dispWin();
         }
@@ -213,11 +212,29 @@ public class BoardGUI {
     }
 
     private void dispWin() {
-        JOptionPane.showMessageDialog(null,"You Win \nPlay Again?" ,"GAME OVER",JOptionPane.PLAIN_MESSAGE);
+        if (JOptionPane.showConfirmDialog(null, "Play Again?", "You Win", JOptionPane.YES_NO_OPTION) == 0)
+            playAgain();
     }
 
     private void dispLose() {
-        JOptionPane.showMessageDialog(null,"You Lose \nPlay Again?","GAME OVER",JOptionPane.PLAIN_MESSAGE);
+        if (JOptionPane.showConfirmDialog(null, "Play Again?", "Game Over, You Lost", JOptionPane.YES_NO_OPTION) == 0)
+            playAgain();
+    }
+
+    private void playAgain(){
+        resetGui();
+        board = null;
+        gameInProgress = true;
+    }
+
+    private void resetGui(){
+        for (short resetRow = 0; resetRow < row; resetRow++){
+            for (short resetCol = 0; resetCol < col; resetCol++){
+                allTiles[resetRow][resetCol].setBackground(null);
+                allTiles[resetRow][resetCol].setForeground(null);
+                allTiles[resetRow][resetCol].setText(null);
+            }
+        }
     }
 
     private short[] askLevel() {
