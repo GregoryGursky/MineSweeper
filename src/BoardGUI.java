@@ -6,7 +6,7 @@ import java.awt.event.MouseEvent;
 public class BoardGUI {
     private final JFrame boardGUI;
     private final JPanel minePanel;
-    private final JPanel infoPanel;
+    private final InfoPanel infoPanel;
     private Board board;
     private final JButton[][] allTiles;
     private final Font font;
@@ -27,7 +27,7 @@ public class BoardGUI {
         boardGUI.setTitle("Minesweeper");
         boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         minePanel = new JPanel();
-        minePanel.setSize(new Dimension(col * 40,row * 40));
+        minePanel.setSize(new Dimension(col * 32,row * 32));
         minePanel.setLayout(new GridLayout(row,col));
         allTiles = new JButton[row][col];
         font = new Font("Arial", Font.BOLD, 20);
@@ -78,7 +78,6 @@ public class BoardGUI {
                             if (board == null) {
                                 board = new Board(col, row, mines, tileLoc);
                                 startTime = System.currentTimeMillis();
-                                flags = 0;
                             } else {
                                 unshadeAdj(tileLoc);
                             }
@@ -226,6 +225,8 @@ public class BoardGUI {
         resetGui();
         board = null;
         gameInProgress = true;
+        flags = 0;
+        infoPanel.resetTime();
     }
 
     private void resetGui(){
@@ -253,13 +254,17 @@ public class BoardGUI {
 
         InfoPanel(){
             timer  = new Timer(10,
-                    e -> {repaint();}
+                    e -> repaint()
             );
             timer.start();
         }
 
         public long getTime(){
             return elapsed;
+        }
+
+        public void resetTime(){
+            elapsed = 0;
         }
 
         @Override
