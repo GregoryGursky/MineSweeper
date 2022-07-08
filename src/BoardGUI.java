@@ -27,7 +27,7 @@ public class BoardGUI {
         boardGUI.setTitle("Minesweeper");
         boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         minePanel = new JPanel();
-        minePanel.setSize(new Dimension(col * 32,row * 32));
+        minePanel.setSize(new Dimension(col * 35,row * 35));
         minePanel.setLayout(new GridLayout(row,col));
         allTiles = new JButton[row][col];
         font = new Font("Arial", Font.BOLD, 20);
