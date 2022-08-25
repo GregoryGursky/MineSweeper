@@ -218,14 +218,12 @@ public class BoardGUI {
         resetGui();
         resetOthers();
     }
-
     private void resetOthers() {
         board = null;
         gameInProgress = true;
         flags = 0;
         infoPanel.resetTime();
     }
-
     protected void changeLevel(Level level){
         setLevelSettings(level);
         gamePanel.removeAll();
@@ -236,7 +234,6 @@ public class BoardGUI {
         gamePanel.revalidate();
         gamePanel.repaint();
     }
-
     private void resetGui(){
         for (short resetRow = 0; resetRow < row; resetRow++){
             for (short resetCol = 0; resetCol < col; resetCol++){

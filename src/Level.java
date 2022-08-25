@@ -68,8 +68,6 @@ public class Level {
             default -> difficulty = Difficulty.Hard;
         }
         levelSelect.setVisible(false);
-//        levelSelect.dispose();
-        // TODO
         if (boardGUI == null) boardGUI = new BoardGUI(this);
         else boardGUI.changeLevel(this);
     }
