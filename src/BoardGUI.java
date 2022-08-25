@@ -7,38 +7,31 @@ import java.awt.event.MouseEvent;
 public class BoardGUI {
     private final JFrame boardGUI;
     private final JPanel gamePanel;
-    private final JPanel minePanel;
+    private JPanel minePanel;
     private final InfoPanel infoPanel;
     private Board board;
-    private final JButton[][] allTiles;
+    private JButton[][] allTiles;
     private final Font font;
     private boolean gameInProgress;
     private Long startTime;
-    private final Difficulty difficulty;
-    private final short row;
-    private final short col;
-    private final short mines;
+    private Difficulty difficulty;
+    private short row;
+    private short col;
+    private short mines;
     private short flags;
     public BoardGUI(Level level){
-        difficulty = level.getDifficulty();
-        col = difficulty.getCol();
-        row = difficulty.getRow();
-        mines = difficulty.getMines();
+        setLevelSettings(level);
         flags = 0;
         boardGUI = new JFrame(); // contains the game panel and the info panel
         boardGUI.setTitle("Minesweeper");
         boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         gamePanel = new JPanel(); // has a set size, info panel on left, board on right
-        gamePanel.setSize(new Dimension(1200,610));
-        minePanel = new JPanel();
-        minePanel.setPreferredSize(new Dimension(col * difficulty.getTileSize(), row * difficulty.getTileSize()));
-        minePanel.setLayout(new GridLayout(row,col));
-        allTiles = new JButton[row][col];
-        font = new Font("Arial", Font.BOLD, 20);
+        gamePanel.setSize(new Dimension(1500,800));
+        setMinePanelSettings();
         gameInProgress = true;
-        infoPanel = new InfoPanel(); // set size
-        infoPanel.setPreferredSize(new Dimension(200, gamePanel.getHeight()));
-        infoPanel.setBackground(Color.GRAY);
+        font = new Font("Arial", Font.BOLD, 20);
+        infoPanel = new InfoPanel(level); // set size
+        infoPanel.setPreferredSize(new Dimension(275, gamePanel.getHeight()));
         boardGUI.setLayout(new BorderLayout());
         boardGUI.setSize(new Dimension(infoPanel.getWidth() + gamePanel.getWidth(), gamePanel.getHeight()));
         createMinePanel();
@@ -49,7 +42,20 @@ public class BoardGUI {
         boardGUI.setLocationRelativeTo(null);
         boardGUI.setVisible(true);
     }
-    public void setLocationRelativeTo(Component c){}
+
+    private void setMinePanelSettings() {
+        minePanel = new JPanel();
+        minePanel.setPreferredSize(new Dimension(col * difficulty.getTileSize(), row * difficulty.getTileSize()));
+        minePanel.setLayout(new GridLayout(row,col));
+        allTiles = new JButton[row][col];
+    }
+
+    private void setLevelSettings(Level level) {
+        difficulty = level.getDifficulty();
+        col = difficulty.getCol();
+        row = difficulty.getRow();
+        mines = difficulty.getMines();
+    }
     private void createMinePanel() {
         for (short newRow = 0; newRow < row; newRow++) {
             for (short newCol = 0; newCol < col; newCol++) {
@@ -210,11 +216,27 @@ public class BoardGUI {
     }
     private void playAgain(){
         resetGui();
+        resetOthers();
+    }
+
+    private void resetOthers() {
         board = null;
         gameInProgress = true;
         flags = 0;
         infoPanel.resetTime();
     }
+
+    protected void changeLevel(Level level){
+        setLevelSettings(level);
+        gamePanel.removeAll();
+        setMinePanelSettings();
+        createMinePanel();
+        resetOthers();
+        gamePanel.add(minePanel);
+        gamePanel.revalidate();
+        gamePanel.repaint();
+    }
+
     private void resetGui(){
         for (short resetRow = 0; resetRow < row; resetRow++){
             for (short resetCol = 0; resetCol < col; resetCol++){
@@ -225,18 +247,32 @@ public class BoardGUI {
         }
     }
     class InfoPanel extends JPanel{
-        short timerX = 90;
-        short timerY = 100;
-        short mineCountX = 90;
-        short mineCountY = 350;
-        long elapsed = 0;
+        private final Level level;
+        private long elapsed = 0;
+
+        JButton changeDiff;
         Timer timer;
-        InfoPanel(){
+        InfoPanel(Level level){
+            this.level = level;
+            this.setBackground(Color.GRAY);
+            changeDiff = new JButton();
+            changeDiff.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    showLevels();
+                }
+            });
+            this.add(changeDiff);
             timer  = new Timer(10,
                     e -> repaint()
             );
             timer.start();
         }
+
+        private void showLevels() {
+            level.offerDifficulties();
+        }
+
         public long getTime(){
             return elapsed;
         }
@@ -247,17 +283,21 @@ public class BoardGUI {
         public void paint(Graphics g){
             super.paint(g);
             g.setColor(Color.DARK_GRAY);
-            g.fillRect(timerX - 70 ,timerY - 40,150,60);
-            g.fillRect(mineCountX  - 70, mineCountY - 40, 150,60);
+            short timerX = 125;
+            short timerY = 100;
+            g.fillRect(timerX - 70 , timerY - 40,150,60);
+            short mineCountX = 125;
+            short mineCountY = 350;
+            g.fillRect(mineCountX - 70, mineCountY - 40, 150,60);
 
             g.setFont(new Font("Ariel", Font.BOLD, 30));
             g.setColor(Color.WHITE);
-            g.drawString("TIME",timerX - 35,timerY - 50);
+            g.drawString("TIME", timerX - 35, timerY - 50);
             if (board != null && gameInProgress)
                 elapsed = (System.currentTimeMillis() - startTime) / 1000;
-            g.drawString(String.valueOf(elapsed),timerX,timerY);
+            g.drawString(String.valueOf(elapsed), timerX, timerY);
             g.drawString("MINES LEFT", mineCountX - 85, mineCountY - 50);
-            g.drawString(String.valueOf(mines - flags),mineCountX,mineCountY);
+            g.drawString(String.valueOf(mines - flags), mineCountX, mineCountY);
         }
     }
 }

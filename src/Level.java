@@ -4,9 +4,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class Level {
-    private final JFrame levelSelect;
+    private JFrame levelSelect;
     private Difficulty difficulty;
+    private BoardGUI boardGUI;
     public Level(){
+        showDifficulties();
+    }
+
+    private void showDifficulties(){
         levelSelect = new JFrame();
         levelSelect.setSize(250,450);
         levelSelect.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -62,10 +67,17 @@ public class Level {
             case 2 -> difficulty = Difficulty.Medium;
             default -> difficulty = Difficulty.Hard;
         }
-        levelSelect.dispose();
-        BoardGUI boardGUI = new BoardGUI(this);
+        levelSelect.setVisible(false);
+//        levelSelect.dispose();
+        // TODO
+        if (boardGUI == null) boardGUI = new BoardGUI(this);
+        else boardGUI.changeLevel(this);
     }
     public Difficulty getDifficulty() {
         return difficulty;
+    }
+
+    public void offerDifficulties() {
+        levelSelect.setVisible(true);
     }
 }
