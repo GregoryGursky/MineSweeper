@@ -5,10 +5,10 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 public class BoardGUI {
-    private final JFrame boardGUI;
-    private final JPanel gamePanel;
+    private JFrame boardGUI;
+    private JPanel gamePanel;
     private JPanel minePanel;
-    private final InfoPanel infoPanel;
+    private InfoPanel infoPanel;
     private Board board;
     private JButton[][] allTiles;
     private final Font font;
@@ -21,47 +21,57 @@ public class BoardGUI {
     private short flags;
     public BoardGUI(Level level){
         setLevelSettings(level);
-        flags = 0;
-        boardGUI = new JFrame(); // contains the game panel and the info panel
-        boardGUI.setTitle("Minesweeper");
-        boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        gamePanel = new JPanel(); // has a set size, info panel on left, board on right
-        gamePanel.setSize(new Dimension(1500,800));
-        setMinePanelSettings();
-        gameInProgress = true;
-        font = new Font("Arial", Font.BOLD, 20);
-        infoPanel = new InfoPanel(level); // set size
-        infoPanel.setPreferredSize(new Dimension(275, gamePanel.getHeight()));
-        boardGUI.setLayout(new BorderLayout());
-        boardGUI.setSize(new Dimension(infoPanel.getWidth() + gamePanel.getWidth(), gamePanel.getHeight()));
+        createBoardGUI();
+        createGamePanel();
         createMinePanel();
-        gamePanel.setLayout(new GridBagLayout());
-        gamePanel.add(minePanel);
+        createInfoPanel(level);
+        addBoardGUIComponents();
+        font = new Font("Arial", Font.BOLD, 20);
+        flags = 0;
+        gameInProgress = true;
+        boardGUI.setVisible(true);
+    }
+    private void addBoardGUIComponents() {
+        boardGUI.setSize(new Dimension(infoPanel.getWidth() + gamePanel.getWidth(), gamePanel.getHeight()));
         boardGUI.add(gamePanel, BorderLayout.CENTER);
         boardGUI.add(infoPanel, BorderLayout.WEST);
         boardGUI.setLocationRelativeTo(null);
-        boardGUI.setVisible(true);
     }
-
-    private void setMinePanelSettings() {
+    private void createInfoPanel(Level level) {
+        infoPanel = new InfoPanel(level); // set size
+        infoPanel.setPreferredSize(new Dimension(275, gamePanel.getHeight()));
+    }
+    private void createGamePanel() {
+        gamePanel = new JPanel(); // has a set size, info panel on left, board on right
+        gamePanel.setSize(new Dimension(1500,800));
+        gamePanel.setLayout(new GridBagLayout());
+    }
+    private void createBoardGUI() {
+        boardGUI = new JFrame(); // contains the game panel and the info panel
+        boardGUI.setTitle("Minesweeper");
+        boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        boardGUI.setLayout(new BorderLayout());
+    }
+    private void createMinePanel() {
         minePanel = new JPanel();
         minePanel.setPreferredSize(new Dimension(col * difficulty.getTileSize(), row * difficulty.getTileSize()));
         minePanel.setLayout(new GridLayout(row,col));
         allTiles = new JButton[row][col];
+        populateMinePanel();
     }
-
     private void setLevelSettings(Level level) {
         difficulty = level.getDifficulty();
         col = difficulty.getCol();
         row = difficulty.getRow();
         mines = difficulty.getMines();
     }
-    private void createMinePanel() {
+    private void populateMinePanel() {
         for (short newRow = 0; newRow < row; newRow++) {
             for (short newCol = 0; newCol < col; newCol++) {
                 createJButton(newRow,newCol);
             }
         }
+        gamePanel.add(minePanel);
     }
     private void createJButton(short newRow,short newCol) {
         JButton tileToAdd = new JButton();
@@ -227,10 +237,8 @@ public class BoardGUI {
     protected void changeLevel(Level level){
         setLevelSettings(level);
         gamePanel.removeAll();
-        setMinePanelSettings();
         createMinePanel();
         resetOthers();
-        gamePanel.add(minePanel);
         gamePanel.revalidate();
         gamePanel.repaint();
     }

@@ -5,7 +5,6 @@ public class Tile {
     private boolean clicked;
     private boolean flagged;
     private TileGUI gui;
-
     protected Tile (short val,short col, short row){
             this.val = val;
             this.col = col;
@@ -20,26 +19,17 @@ public class Tile {
     public void setClicked() {
         this.clicked = true;
     }
-
     public void setFlag() {
         flagged = !flagged;
     }
-
     public short getCol() { return col; }
-
     public short getRow() { return row; }
-
     public short getVal() { return val; }
-
     public TileGUI getGui() {
         return gui;
     }
-
     public boolean isClicked() { return clicked;}
-
     public boolean isFlagged() {
         return flagged;
     }
-
-
 }
