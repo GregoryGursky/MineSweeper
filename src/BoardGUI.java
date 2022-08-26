@@ -5,9 +5,11 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 public class BoardGUI {
-    private JFrame boardGUI;
+    private JFrame boardFrame;
+    private JPanel boardGUI;
     private JPanel gamePanel;
     private JPanel minePanel;
+    private JPanel glassPanel;
     private InfoPanel infoPanel;
     private Board board;
     private JButton[][] allTiles;
@@ -25,32 +27,27 @@ public class BoardGUI {
         createGamePanel();
         createMinePanel();
         createInfoPanel(level);
+        createGlassPanel();
         addBoardGUIComponents();
         font = new Font("Arial", Font.BOLD, 20);
         flags = 0;
         gameInProgress = true;
-        boardGUI.setVisible(true);
+        boardFrame.setVisible(true);
     }
-    private void addBoardGUIComponents() {
-        boardGUI.setSize(new Dimension(infoPanel.getWidth() + gamePanel.getWidth(), gamePanel.getHeight()));
-        boardGUI.add(gamePanel, BorderLayout.CENTER);
-        boardGUI.add(infoPanel, BorderLayout.WEST);
-        boardGUI.setLocationRelativeTo(null);
+    private void setLevelSettings(Level level) {
+        difficulty = level.getDifficulty();
+        col = difficulty.getCol();
+        row = difficulty.getRow();
+        mines = difficulty.getMines();
     }
-    private void createInfoPanel(Level level) {
-        infoPanel = new InfoPanel(level); // set size
-        infoPanel.setPreferredSize(new Dimension(275, gamePanel.getHeight()));
+    private void createBoardGUI() {
+        boardGUI = new JPanel(); // contains the game panel and the info panel
+        boardGUI.setLayout(new BorderLayout());
     }
     private void createGamePanel() {
         gamePanel = new JPanel(); // has a set size, info panel on left, board on right
         gamePanel.setSize(new Dimension(1500,800));
         gamePanel.setLayout(new GridBagLayout());
-    }
-    private void createBoardGUI() {
-        boardGUI = new JFrame(); // contains the game panel and the info panel
-        boardGUI.setTitle("Minesweeper");
-        boardGUI.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        boardGUI.setLayout(new BorderLayout());
     }
     private void createMinePanel() {
         minePanel = new JPanel();
@@ -59,12 +56,6 @@ public class BoardGUI {
         allTiles = new JButton[row][col];
         populateMinePanel();
     }
-    private void setLevelSettings(Level level) {
-        difficulty = level.getDifficulty();
-        col = difficulty.getCol();
-        row = difficulty.getRow();
-        mines = difficulty.getMines();
-    }
     private void populateMinePanel() {
         for (short newRow = 0; newRow < row; newRow++) {
             for (short newCol = 0; newCol < col; newCol++) {
@@ -72,6 +63,32 @@ public class BoardGUI {
             }
         }
         gamePanel.add(minePanel);
+    }
+    private void createInfoPanel(Level level) {
+        infoPanel = new InfoPanel(level); // set size
+        infoPanel.setPreferredSize(new Dimension(275, gamePanel.getHeight()));
+    }
+    private void createGlassPanel() {
+        glassPanel = new JPanel() {
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(new Color(0, 0, 0, 100));
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        glassPanel.setOpaque(false);
+    }
+    private void addBoardGUIComponents() {
+        boardFrame = new JFrame();
+        boardFrame.setTitle("Minesweeper");
+        boardFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        boardFrame.setGlassPane(glassPanel);
+        boardFrame.add(boardGUI);
+        boardGUI.setSize(new Dimension(infoPanel.getWidth() + gamePanel.getWidth(), gamePanel.getHeight()));
+        boardGUI.add(gamePanel, BorderLayout.CENTER);
+        boardGUI.add(infoPanel, BorderLayout.WEST);
+        boardFrame.setSize(boardGUI.getSize());
+        boardFrame.setLocationRelativeTo(null);
     }
     private void createJButton(short newRow,short newCol) {
         JButton tileToAdd = new JButton();
@@ -217,12 +234,20 @@ public class BoardGUI {
         return valid;
     }
     private void dispWin() {
+        glassPanel.setVisible(true);
         if (JOptionPane.showConfirmDialog(null, "Play Again?", "You Win", JOptionPane.YES_NO_OPTION) == 0)
             playAgain();
+        else
+            glassPanel.setVisible(false);
+
     }
     private void dispLose() {
+        glassPanel.setVisible(true);
         if (JOptionPane.showConfirmDialog(null, "Play Again?", "Game Over, You Lost", JOptionPane.YES_NO_OPTION) == 0)
             playAgain();
+        else
+            glassPanel.setVisible(false);
+
     }
     private void playAgain(){
         resetGui();
@@ -241,6 +266,8 @@ public class BoardGUI {
         resetOthers();
         gamePanel.revalidate();
         gamePanel.repaint();
+        glassPanel.setVisible(false);
+        infoPanel.resetTime();
     }
     private void resetGui(){
         for (short resetRow = 0; resetRow < row; resetRow++){
@@ -251,6 +278,7 @@ public class BoardGUI {
             }
         }
     }
+
     class InfoPanel extends JPanel{
         private final Level level;
         private long elapsed = 0;
@@ -264,6 +292,7 @@ public class BoardGUI {
             changeDiff.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
+                    timer.stop();
                     showLevels();
                 }
             });
@@ -275,6 +304,7 @@ public class BoardGUI {
         }
 
         private void showLevels() {
+            glassPanel.setVisible(true);
             level.offerDifficulties();
         }
 
@@ -282,6 +312,8 @@ public class BoardGUI {
             return elapsed;
         }
         public void resetTime(){
+            glassPanel.setVisible(false);
+            timer.restart();
             elapsed = 0;
         }
         @Override

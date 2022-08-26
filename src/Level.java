@@ -14,7 +14,7 @@ public class Level {
     private void showDifficulties(){
         levelSelect = new JFrame();
         levelSelect.setSize(250,450);
-        levelSelect.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        levelSelect.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         String text = "Easy \n 9x9 grid -- 10 mines";
         JButton easy = new JButton("<html>" + text.replaceAll("\n", "<br>") + "</html>");
@@ -70,6 +70,7 @@ public class Level {
         levelSelect.setVisible(false);
         if (boardGUI == null) boardGUI = new BoardGUI(this);
         else boardGUI.changeLevel(this);
+
     }
     public Difficulty getDifficulty() {
         return difficulty;
