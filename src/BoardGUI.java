@@ -15,6 +15,7 @@ public class BoardGUI {
     private JButton[][] allTiles;
     private final Font font;
     private boolean gameInProgress;
+    private boolean allowClicks;
     private Long startTime;
     private Difficulty difficulty;
     private short row;
@@ -32,6 +33,7 @@ public class BoardGUI {
         font = new Font("Arial", Font.BOLD, 20);
         flags = 0;
         gameInProgress = true;
+        allowClicks = true;
         boardFrame.setVisible(true);
     }
     private void setLevelSettings(Level level) {
@@ -97,40 +99,44 @@ public class BoardGUI {
         tileToAdd.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e){
-                if (board != null && gameInProgress){
-                    if (e.getButton() == 1){
-                        shadeAdj(tileLoc);
+                if (allowClicks){
+                    if (board != null && gameInProgress){
+                        if (e.getButton() == 1){
+                            shadeAdj(tileLoc);
+                        }
                     }
                 }
             }
             @Override
             public void mouseReleased(MouseEvent e){
-                TileLoc[] response;
-                switch (e.getButton()) {
-                    case 1 -> {
-                        if (gameInProgress){
-                            if (board == null) {
-                                board = new Board(col, row, mines, tileLoc);
-                                startTime = System.currentTimeMillis();
-                            } else {
-                                unshadeAdj(tileLoc);
+                if (allowClicks){
+                    TileLoc[] response;
+                    switch (e.getButton()) {
+                        case 1 -> {
+                            if (gameInProgress){
+                                if (board == null) {
+                                    board = new Board(col, row, mines, tileLoc);
+                                    startTime = System.currentTimeMillis();
+                                } else {
+                                    unshadeAdj(tileLoc);
+                                }
+                                response = board.leftClickTile(tileLoc); // clicks tile
+                                if (response != null) { // returns null if tile is flagged
+                                    setGUI(response);
+                                }
                             }
-                            response = board.leftClickTile(tileLoc); // clicks tile
-                            if (response != null) { // returns null if tile is flagged
-                                setGUI(response);
+                            gameInProgressCheck();
+                        }
+                        case 3 -> {
+                            if (gameInProgress){
+                                response = board.rightClickTile(tileLoc);
+                                if (response != null) { // returns null if tile is clicked
+                                    setFlag(response);
+                                }
                             }
                         }
-                        gameInProgressCheck();
+                        default -> e.consume();
                     }
-                    case 3 -> {
-                        if (gameInProgress){
-                            response = board.rightClickTile(tileLoc);
-                            if (response != null) { // returns null if tile is clicked
-                                setFlag(response);
-                            }
-                        }
-                    }
-                    default -> e.consume();
                 }
             }
         });
@@ -235,18 +241,24 @@ public class BoardGUI {
     }
     private void dispWin() {
         glassPanel.setVisible(true);
+        allowClicks = false;
         if (JOptionPane.showConfirmDialog(null, "Play Again?", "You Win", JOptionPane.YES_NO_OPTION) == 0)
             playAgain();
-        else
+        else{
+            allowClicks = true;
             glassPanel.setVisible(false);
+        }
 
     }
     private void dispLose() {
         glassPanel.setVisible(true);
+        allowClicks = false;
         if (JOptionPane.showConfirmDialog(null, "Play Again?", "Game Over, You Lost", JOptionPane.YES_NO_OPTION) == 0)
             playAgain();
-        else
+        else{
+            allowClicks = false;
             glassPanel.setVisible(false);
+        }
 
     }
     private void playAgain(){
@@ -267,6 +279,7 @@ public class BoardGUI {
         gamePanel.revalidate();
         gamePanel.repaint();
         glassPanel.setVisible(false);
+        allowClicks = false;
         infoPanel.resetTime();
     }
     private void resetGui(){
@@ -305,6 +318,7 @@ public class BoardGUI {
 
         private void showLevels() {
             glassPanel.setVisible(true);
+            allowClicks = false;
             level.offerDifficulties();
         }
 
@@ -313,6 +327,7 @@ public class BoardGUI {
         }
         public void resetTime(){
             glassPanel.setVisible(false);
+            allowClicks = true;
             timer.restart();
             elapsed = 0;
         }

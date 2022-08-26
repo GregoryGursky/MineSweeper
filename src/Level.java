@@ -5,6 +5,10 @@ import java.awt.event.MouseEvent;
 
 public class Level {
     private JFrame levelSelect;
+    private JFrame changeLevel;
+    private JButton easy;
+    private JButton medium;
+    private JButton hard;
     private Difficulty difficulty;
     private BoardGUI boardGUI;
     public Level(){
@@ -17,7 +21,7 @@ public class Level {
         levelSelect.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         String text = "Easy \n 9x9 grid -- 10 mines";
-        JButton easy = new JButton("<html>" + text.replaceAll("\n", "<br>") + "</html>");
+        easy = new JButton("<html>" + text.replaceAll("\n", "<br>") + "</html>");
         easy.setBackground(new Color(194, 237, 59));
         easy.setForeground(Color.WHITE);
         easy.addMouseListener(new MouseAdapter() {
@@ -28,7 +32,7 @@ public class Level {
         });
 
         text = "Medium \n 16x16 grid -- 40 mines ";
-        JButton medium = new JButton("<html>" + text.replaceAll("\n", "<br>") + "</html>");
+        medium = new JButton("<html>" + text.replaceAll("\n", "<br>") + "</html>");
         medium.setBackground(new Color(255, 188, 0));
         medium.setForeground(Color.WHITE);
         medium.addMouseListener(new MouseAdapter() {
@@ -39,7 +43,7 @@ public class Level {
         });
 
         text = "Hard \n 30x16 grid -- 99 mines";
-        JButton hard = new JButton("<html>" + text.replaceAll("\n", "<br>") + "</html>");
+        hard = new JButton("<html>" + text.replaceAll("\n", "<br>") + "</html>");
         hard.setBackground(new Color(227, 85, 34));
         hard.setForeground(Color.WHITE);
         hard.addMouseListener(new MouseAdapter() {
@@ -67,7 +71,8 @@ public class Level {
             case 2 -> difficulty = Difficulty.Medium;
             default -> difficulty = Difficulty.Hard;
         }
-        levelSelect.setVisible(false);
+        if (changeLevel == null) levelSelect.setVisible(false);
+        else changeLevel.setVisible(false);
         if (boardGUI == null) boardGUI = new BoardGUI(this);
         else boardGUI.changeLevel(this);
 
@@ -77,6 +82,20 @@ public class Level {
     }
 
     public void offerDifficulties() {
-        levelSelect.setVisible(true);
+        if (changeLevel == null){
+            changeLevel = new JFrame();
+            changeLevel.setSize(250,450);
+            changeLevel.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            changeLevel.setLayout(new GridLayout(3,1,10,10));
+            changeLevel.add(easy);
+            changeLevel.add(medium);
+            changeLevel.add(hard);
+            changeLevel.setLocationRelativeTo(null);
+            changeLevel.setUndecorated(true);
+        }
+        changeLevel.setVisible(true);
+
+//        changeLevel.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
+//        levelSelect.setVisible(true);
     }
 }
