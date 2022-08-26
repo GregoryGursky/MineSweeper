@@ -94,8 +94,5 @@ public class Level {
             changeLevel.setUndecorated(true);
         }
         changeLevel.setVisible(true);
-
-//        changeLevel.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
-//        levelSelect.setVisible(true);
     }
 }
