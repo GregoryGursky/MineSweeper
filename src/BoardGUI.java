@@ -295,13 +295,30 @@ public class BoardGUI {
     class InfoPanel extends JPanel{
         private final Level level;
         private long elapsed = 0;
+        private final short timerX;
+        private final short timerY;
+        private final short mineCountX;
+        private final short mineCountY;
+        private final int infoW;
+        private final int infoH;
 
         JButton changeDiff;
         Timer timer;
         InfoPanel(Level level){
             this.level = level;
+            this.setLayout(null);
             this.setBackground(Color.GRAY);
+
+            timerX = 55;
+            timerY = 100;
+            mineCountX = 55;
+            mineCountY = 350;
+            infoW = 150;
+            infoH = 60;
             changeDiff = new JButton();
+            changeDiff.setSize(infoW,infoH);
+            changeDiff.setText("Change Difficulty");
+            changeDiff.setLocation(55,515);
             changeDiff.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -315,13 +332,11 @@ public class BoardGUI {
             );
             timer.start();
         }
-
         private void showLevels() {
             glassPanel.setVisible(true);
             allowClicks = false;
             level.offerDifficulties();
         }
-
         public long getTime(){
             return elapsed;
         }
@@ -335,21 +350,21 @@ public class BoardGUI {
         public void paint(Graphics g){
             super.paint(g);
             g.setColor(Color.DARK_GRAY);
-            short timerX = 125;
-            short timerY = 100;
-            g.fillRect(timerX - 70 , timerY - 40,150,60);
-            short mineCountX = 125;
-            short mineCountY = 350;
-            g.fillRect(mineCountX - 70, mineCountY - 40, 150,60);
+            g.fill3DRect(timerX,timerY - 40,infoW,infoH,true);
+            g.draw3DRect(timerX,timerY - 40,infoW,infoH,true);
+            g.fill3DRect(mineCountX, mineCountY - 40, infoW,infoH,true);
+            g.draw3DRect(mineCountX, mineCountY - 40, infoW,infoH,true);
 
             g.setFont(new Font("Ariel", Font.BOLD, 30));
             g.setColor(Color.WHITE);
-            g.drawString("TIME", timerX - 35, timerY - 50);
+            g.drawString("TIME", timerX, timerY - 50);
             if (board != null && gameInProgress)
                 elapsed = (System.currentTimeMillis() - startTime) / 1000;
-            g.drawString(String.valueOf(elapsed), timerX, timerY);
-            g.drawString("MINES LEFT", mineCountX - 85, mineCountY - 50);
-            g.drawString(String.valueOf(mines - flags), mineCountX, mineCountY);
+            g.drawString(String.valueOf(elapsed), timerX + 95, timerY);
+            g.drawString("MINES LEFT", mineCountX, mineCountY - 50);
+            g.drawString(String.valueOf(mines - flags), mineCountX + 95, mineCountY);
+            g.drawString(level.getDifficulty().toString().toUpperCase(),55,500);
+
         }
     }
 }
