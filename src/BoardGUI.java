@@ -256,7 +256,7 @@ public class BoardGUI {
         if (JOptionPane.showConfirmDialog(null, "Play Again?", "Game Over, You Lost", JOptionPane.YES_NO_OPTION) == 0)
             playAgain();
         else{
-            allowClicks = false;
+            allowClicks = true;
             glassPanel.setVisible(false);
         }
 
