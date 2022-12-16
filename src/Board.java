@@ -41,13 +41,13 @@ public class Board {
         Random rng = new Random();
         short col, row;
         short minesMade = 0;
-        mineLocations = new TileLoc[mines];
+        mineLocations = new TileTalker[mines];
         while (minesMade < mines){
             row = (short) rng.nextInt(height);
             col = (short) rng.nextInt(width);
             if (board[row][col] == null && !startingBox.contains(new TileLoc(col,row))){
                 board[row][col] = new Tile((short) 9, col, row);
-                mineLocations[minesMade++] = new TileLoc(col,row);
+                mineLocations[minesMade++] = new TileTalker(col,row,(short)9,TileGUI.BOMB);
             }
         }
     }
