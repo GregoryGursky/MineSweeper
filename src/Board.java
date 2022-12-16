@@ -11,7 +11,7 @@ public class Board {
     private final short tilesNeeded;
     private short tilesClicked;
     private final Tile[][] board;
-    private TileLoc[] mineLocations;
+    private TileTalker[] mineLocations;
     public Board(short width, short height, short mines, TileLoc tileLoc){
         this.height = height;
         this.width = width;
@@ -75,31 +75,34 @@ public class Board {
         }
         return minesTouching;
     }
-    public TileLoc[] rightClickTile(@NotNull TileLoc clicked){
+    public TileTalker rightClickTile(@NotNull TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isClicked()){ // only able to flag non-clicked tiles
             clickedTile.setFlag(); // change the flag val
             if (clickedTile.isFlagged())
                 clickedTile.setGui(TileGUI.FLAG);
             else clickedTile.setGui(TileGUI.UNFLAG);
-            return new TileLoc[]{clicked};
+            return new TileTalker(clickedTile.getCol(),
+                                  clickedTile.getRow(),
+                                  clickedTile.getVal(),
+                                  clickedTile.getGui());
         }
         return null;
     }
-    public TileLoc[] leftClickTile(@NotNull TileLoc clicked){
+    public TileTalker[] leftClickTile(@NotNull TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isFlagged()){ // can only click non-flagged tiles
-            TileLoc[] locs;
+            TileTalker[] locs;
             if (!clickedTile.isClicked()){ // clicked a new tile
                 short tileVal = clickedTile.getVal();
                 switch (tileVal){
-                    case (9):
+                    case (9): // clicked a mine
                         return endGame();
-                    case (0):
+                    case (0): // clicked a zero
                         locs = clickSurrounding(clicked);
                         finalPrep(locs);
                         return locs;
-                    default:
+                    default: // clicked a number
                         locs = clickSelf(clicked);
                         finalPrep(locs);
                         return locs;
@@ -112,7 +115,7 @@ public class Board {
         }
         return null;
     }
-    private void finalPrep(TileLoc @NotNull [] finalPrep){
+    private void finalPrep(TileTalker @NotNull [] finalPrep){
         tilesClicked += finalPrep.length;
         setGuis(finalPrep);
     }
@@ -140,21 +143,24 @@ public class Board {
             return new TileLoc[]{};
         }
     }
-    private TileLoc[] endGame(){
+    private TileTalker[] endGame(){
         mineClicked = true;
-        for (TileLoc tileLoc: mineLocations){
+        for (TileTalker tileLoc: mineLocations){
             board[tileLoc.row()][tileLoc.col()].setGui(TileGUI.BOMB);
         }
         return mineLocations;
     }
     @Contract("_ -> new")
-    private TileLoc @NotNull [] clickSelf(@NotNull TileLoc clicked){
+    private TileTalker @NotNull [] clickSelf(@NotNull TileLoc clicked){
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isClicked()) { // if not clicked
             clickedTile.setClicked();
             clickedTile.setGui(TileGUI.NUMBER);
         }
-        return new TileLoc[]{clicked};
+        return new TileTalker[]{new TileTalker(clickedTile.getCol(),
+                                               clickedTile.getRow(),
+                                               clickedTile.getVal(),
+                                               clickedTile.getGui())};
     }
     private @Nullable LinkedList<Tile> adjFlagCheck(@NotNull Tile clickedTile) {
         short flagsNeeded = clickedTile.getVal();
@@ -177,7 +183,7 @@ public class Board {
         }
         return (flagsNeeded == 0)? adjTiles: null;
     }
-    private TileLoc @NotNull [] clickSurrounding(@NotNull TileLoc clicked){
+    private TileTalker @NotNull [] clickSurrounding(@NotNull TileLoc clicked){
         Tile firstClick = board[clicked.row()][clicked.col()];
         firstClick.setClicked();
         LinkedList<Tile> adjTiles = getAdjZeros(firstClick);
@@ -230,9 +236,9 @@ public class Board {
         }
         return allAdjTiles;
     }
-    private void setGuis(TileLoc @NotNull [] tileLocs){
-        for (TileLoc tileLoc: tileLocs){
-            Tile tile = board[tileLoc.row()][tileLoc.col()];
+    private void setGuis(TileTalker @NotNull [] tileLocs){
+        for (TileTalker talker: tileLocs){
+            Tile tile = board[talker.row()][talker.col()];
             short val = tile.getVal();
             if (val == 9) {
                 tile.setGui(TileGUI.BOMB);
@@ -241,12 +247,15 @@ public class Board {
             }
         }
     }
-    private TileLoc @NotNull [] tileLocConverter(@NotNull HashSet<Tile> allAdjTiles) {
+    private TileTalker @NotNull [] tileLocConverter(@NotNull HashSet<Tile> allAdjTiles) {
         short maxIndex = (short) ((short) allAdjTiles.size());
         short index = 0;
-        TileLoc[] converted = new TileLoc[maxIndex];
+        TileTalker[] converted = new TileTalker[maxIndex];
         for (Tile tile: allAdjTiles) {
-            converted[index] = new TileLoc(tile.getCol(), tile.getRow());
+            converted[index] = new TileTalker(tile.getCol(),
+                                              tile.getRow(),
+                                              tile.getVal(),
+                                              tile.getGui());
             index++;
         }
         return converted;
@@ -261,12 +270,12 @@ public class Board {
     public boolean isFlagged(short rowOff, short colOff) {
         return board[rowOff][colOff].isFlagged();
     }
-    public short getTileVal(short row, short col){
-        return board[row][col].getVal();
-    }
-    public TileGUI getTileGui(@NotNull TileLoc tl) {
-        return board[tl.row()][tl.col()].getGui();
-    }
+//    public short getTileVal(short row, short col){
+//        return board[row][col].getVal();
+//    }
+//    public TileGUI getTileGui(@NotNull TileLoc tl) {
+//        return board[tl.row()][tl.col()].getGui();
+//    }
     public boolean mineCheck(){ return mineClicked; }
     public boolean winCheck(){
         return tilesClicked == tilesNeeded;
