@@ -110,7 +110,8 @@ public class BoardGUI {
             @Override
             public void mouseReleased(MouseEvent e){
                 if (allowClicks){
-                    TileLoc[] response;
+                    TileTalker[] leftResponse;
+                    TileTalker rightResponse;
                     switch (e.getButton()) {
                         case 1 -> {
                             if (gameInProgress){
@@ -120,18 +121,18 @@ public class BoardGUI {
                                 } else {
                                     unshadeAdj(tileLoc);
                                 }
-                                response = board.leftClickTile(tileLoc); // clicks tile
-                                if (response != null) { // returns null if tile is flagged
-                                    setGUI(response);
+                                leftResponse = board.leftClickTile(tileLoc); // clicks tile
+                                if (leftResponse != null) { // returns null if tile is flagged
+                                    setGUI(leftResponse);
                                 }
                             }
                             gameInProgressCheck();
                         }
                         case 3 -> {
                             if (gameInProgress){
-                                response = board.rightClickTile(tileLoc);
-                                if (response != null) { // returns null if tile is clicked
-                                    setFlag(response);
+                                rightResponse = board.rightClickTile(tileLoc);
+                                if (rightResponse != null) { // returns null if tile is clicked
+                                    setFlag(rightResponse);
                                 }
                             }
                         }
@@ -159,40 +160,36 @@ public class BoardGUI {
             dispWin();
         }
     }
-    private void setFlag(TileLoc @NotNull [] response) {
-        for (TileLoc tl : response) {
-            TileGUI tileGUI = board.getTileGui(tl);
-            switch (tileGUI) {
-                case FLAG -> {
-                    allTiles[tl.row()][tl.col()].setBackground(Color.ORANGE);
-                    flags++;
-                }
-                case UNFLAG -> {
-                    allTiles[tl.row()][tl.col()].setBackground(null);
-                    flags--;
-                }
-                default -> {
-                }
+    private void setFlag(TileTalker clicked) {
+        switch (clicked.gui()) {
+            case FLAG -> {
+                allTiles[clicked.row()][clicked.col()].setBackground(Color.ORANGE);
+                flags++;
             }
+            case UNFLAG -> {
+                allTiles[clicked.row()][clicked.col()].setBackground(null);
+                flags--;
+            }
+            default -> {}
         }
     }
-    private void setGUI(TileLoc @NotNull [] response) {
+    private void setGUI(TileTalker @NotNull [] response) {
         short num;
-        for (TileLoc tl : response) {
-            TileGUI tileGUI = board.getTileGui(tl);
-            JButton changeGUI = allTiles[tl.row()][tl.col()];
+        for (TileTalker talker : response) {
+            TileGUI tileGUI = talker.gui();
+            JButton changeGUI = allTiles[talker.row()][talker.col()];
             switch (tileGUI) {
                 case NUMBER:
                     setBackground(changeGUI);
-                    num = board.getTileVal(tl.row(), tl.col());
+                    num = talker.val();
                     if (num != 0){
                         changeGUI.setText(String.valueOf(num));
                         setForeground(num, changeGUI);
                     }
                     break;
                 case BOMB:
-                    if (allTiles[tl.row()][tl.col()].getBackground() != Color.ORANGE)
-                        allTiles[tl.row()][tl.col()].setBackground(Color.RED);
+                    if (allTiles[talker.row()][talker.col()].getBackground() != Color.ORANGE)
+                        allTiles[talker.row()][talker.col()].setBackground(Color.RED);
                     break;
             }
         }
