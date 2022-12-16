@@ -119,28 +119,31 @@ public class Board {
         tilesClicked += finalPrep.length;
         setGuis(finalPrep);
     }
-    private TileLoc @NotNull [] secondClick(@NotNull TileLoc clicked) {
+    private TileTalker @NotNull [] secondClick(@NotNull TileLoc clicked) {
         LinkedList<Tile> adjTiles = adjFlagCheck(board[clicked.row()][clicked.col()]);
-        HashSet<TileLoc> reveal = new HashSet<>(); // I need a HSet vs ArrList for secondClick touching a zero
+        HashSet<TileTalker> reveal = new HashSet<>(); // I need a HSet vs ArrList for secondClick touching a zero
         if (adjTiles != null){
             for (Tile tile: adjTiles){
                 if (tile.getVal() == 9){
                     reveal.addAll(List.of(endGame()));
-                } else{
+                } else {
                     if (!tile.isClicked()){
-                        reveal.add(new TileLoc(tile.getCol(),tile.getRow()));
+                        reveal.add(new TileTalker(tile.getCol(),
+                                                  tile.getRow(),
+                                                  tile.getVal(),
+                                                  tile.getGui()));
                         if (tile.getVal() == 0){
-                            TileLoc[] zeros = clickSurrounding(new TileLoc(tile.getCol(),tile.getRow()));
-                            ArrayList<TileLoc> zerosArr = new ArrayList<>(List.of(zeros));
+                            TileTalker[] zeros = clickSurrounding(new TileLoc(tile.getCol(),tile.getRow()));
+                            ArrayList<TileTalker> zerosArr = new ArrayList<>(List.of(zeros));
                             reveal.addAll(zerosArr);
                         }
                     }
                     tile.setClicked();
                 }
             }
-            return reveal.toArray(new TileLoc[0]);
+            return reveal.toArray(new TileTalker[0]);
         } else {
-            return new TileLoc[]{};
+            return new TileTalker[]{};
         }
     }
     private TileTalker[] endGame(){
