@@ -5,12 +5,13 @@ public class Tile {
     private boolean clicked;
     private boolean flagged;
     private TileGUI gui;
-    protected Tile (short val,short col, short row){
+    protected Tile (short val,short col, short row, TileGUI gui){
             this.val = val;
             this.col = col;
             this.row = row;
             this.clicked = false;
             this.flagged = false;
+            this.gui = gui;
     }
 
     public void setGui(TileGUI gui) {

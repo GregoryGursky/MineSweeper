@@ -46,7 +46,7 @@ public class Board {
             row = (short) rng.nextInt(height);
             col = (short) rng.nextInt(width);
             if (board[row][col] == null && !startingBox.contains(new TileLoc(col,row))){
-                board[row][col] = new Tile((short) 9, col, row);
+                board[row][col] = new Tile((short) 9, col, row, TileGUI.BOMB);
                 mineLocations[minesMade++] = new TileTalker(col,row,(short)9,TileGUI.BOMB);
             }
         }
@@ -56,7 +56,7 @@ public class Board {
             for (short col = 0; col < width; col++) {
                 if (board[row][col] == null){
                     short val = getVal(row,col);
-                    board[row][col] = new Tile(val, col, row);
+                    board[row][col] = new Tile(val, col, row, TileGUI.NUMBER);
                 }
             }
         }
@@ -117,7 +117,7 @@ public class Board {
     }
     private void finalPrep(TileTalker @NotNull [] finalPrep){
         tilesClicked += finalPrep.length;
-        setGuis(finalPrep);
+//        setGuis(finalPrep);
     }
     private TileTalker @NotNull [] secondClick(@NotNull TileLoc clicked) {
         LinkedList<Tile> adjTiles = adjFlagCheck(board[clicked.row()][clicked.col()]);
@@ -148,9 +148,9 @@ public class Board {
     }
     private TileTalker[] endGame(){
         mineClicked = true;
-        for (TileTalker tileLoc: mineLocations){
-            board[tileLoc.row()][tileLoc.col()].setGui(TileGUI.BOMB);
-        }
+//        for (TileTalker tileLoc: mineLocations){
+//            board[tileLoc.row()][tileLoc.col()].setGui(TileGUI.BOMB);
+//        }
         return mineLocations;
     }
     @Contract("_ -> new")
@@ -158,7 +158,7 @@ public class Board {
         Tile clickedTile = board[clicked.row()][clicked.col()];
         if (!clickedTile.isClicked()) { // if not clicked
             clickedTile.setClicked();
-            clickedTile.setGui(TileGUI.NUMBER);
+//            clickedTile.setGui(TileGUI.NUMBER);
         }
         return new TileTalker[]{new TileTalker(clickedTile.getCol(),
                                                clickedTile.getRow(),
@@ -203,7 +203,7 @@ public class Board {
                         Tile adjTile = board[rowOff][colOff];
                         if (!adjTile.isClicked()){
                             adjTile.setClicked();
-                            adjTile.setGui(TileGUI.NUMBER);
+//                            adjTile.setGui(TileGUI.NUMBER);
                             adjTiles.add(adjTile);
                         }
                     }
@@ -239,17 +239,17 @@ public class Board {
         }
         return allAdjTiles;
     }
-    private void setGuis(TileTalker @NotNull [] tileLocs){
-        for (TileTalker talker: tileLocs){
-            Tile tile = board[talker.row()][talker.col()];
-            short val = tile.getVal();
-            if (val == 9) {
-                tile.setGui(TileGUI.BOMB);
-            } else {
-                tile.setGui(TileGUI.NUMBER);
-            }
-        }
-    }
+//    private void setGuis(TileTalker @NotNull [] tileLocs){
+//        for (TileTalker talker: tileLocs){
+//            Tile tile = board[talker.row()][talker.col()];
+//            short val = tile.getVal();
+//            if (val == 9) {
+//                tile.setGui(TileGUI.BOMB);
+//            } else {
+//                tile.setGui(TileGUI.NUMBER);
+//            }
+//        }
+//    }
     private TileTalker @NotNull [] tileLocConverter(@NotNull HashSet<Tile> allAdjTiles) {
         short maxIndex = (short) ((short) allAdjTiles.size());
         short index = 0;
